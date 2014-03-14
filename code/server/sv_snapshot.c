@@ -590,11 +590,19 @@ void SV_SendUserMessagesToClient( client_t *client, msg_t *msg ) {
 
 	// write any unacknowledged serverCommands
 	//for ( i = client->reliableAcknowledge + 1 ; i <= client->reliableSequence ; i++ ) {
-		MSG_WriteByte( msg, svc_usermessage );
-		MSG_WriteLong( msg, 3456 );
-		MSG_WriteString( msg, "sup!" );
+		//MSG_WriteByte( msg, svc_usermessage );
+		//MSG_WriteLong( msg, 3456 );
+		//MSG_WriteString( msg, "sup!" );
 	//}
 	//client->reliableSent = client->reliableSequence;
+
+
+	if (global_lua) {
+		lua_getglobal(global_lua, "SV_SendUserMessagesToClient");
+		lua_pushinteger(global_lua, (int)client);
+		lua_pushinteger(global_lua, (int)msg);
+		lua_call(global_lua, 2, 0); // 2 args, 0 rets
+	}
 }
 
 

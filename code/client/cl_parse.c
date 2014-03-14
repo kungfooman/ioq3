@@ -859,11 +859,40 @@ void CL_ParseCommandString( msg_t *msg ) {
 }
 
 
-void CL_ParseUsermessage( msg_t *msg ) {
-	int num = MSG_ReadLong(msg);
-	char *str = MSG_ReadString(msg);
-
-	Com_Printf("SVC_USERMESSAGE! num=%d str=%s\n", num, str);
+void CL_ParseUsermessage_1( msg_t *msg ) {
+	if (global_lua) {
+		lua_getglobal(global_lua, "CL_ParseUsermessage_1");
+		lua_pushinteger(global_lua, (int)msg);
+		lua_call(global_lua, 1, 0); // 1 args, 0 rets
+	}
+}
+void CL_ParseUsermessage_2( msg_t *msg ) {
+	if (global_lua) {
+		lua_getglobal(global_lua, "CL_ParseUsermessage_2");
+		lua_pushinteger(global_lua, (int)msg);
+		lua_call(global_lua, 1, 0); // 1 args, 0 rets
+	}
+}
+void CL_ParseUsermessage_3( msg_t *msg ) {
+	if (global_lua) {
+		lua_getglobal(global_lua, "CL_ParseUsermessage_3");
+		lua_pushinteger(global_lua, (int)msg);
+		lua_call(global_lua, 1, 0); // 1 args, 0 rets
+	}
+}
+void CL_ParseUsermessage_4( msg_t *msg ) {
+	if (global_lua) {
+		lua_getglobal(global_lua, "CL_ParseUsermessage_4");
+		lua_pushinteger(global_lua, (int)msg);
+		lua_call(global_lua, 1, 0); // 1 args, 0 rets
+	}
+}
+void CL_ParseUsermessage_5( msg_t *msg ) {
+	if (global_lua) {
+		lua_getglobal(global_lua, "CL_ParseUsermessage_5");
+		lua_pushinteger(global_lua, (int)msg);
+		lua_call(global_lua, 1, 0); // 1 args, 0 rets
+	}
 }
 
 /*
@@ -926,7 +955,11 @@ void CL_ParseServerMessage( msg_t *msg ) {
 				CL_ParseVoip( msg );
 				#endif
 				break;
-			case svc_usermessage: CL_ParseUsermessage(msg); break;
+			case svc_usermessage_1: CL_ParseUsermessage_1(msg); break;
+			case svc_usermessage_2: CL_ParseUsermessage_2(msg); break;
+			case svc_usermessage_3: CL_ParseUsermessage_3(msg); break;
+			case svc_usermessage_4: CL_ParseUsermessage_4(msg); break;
+			case svc_usermessage_5: CL_ParseUsermessage_5(msg); break;
 		}
 	}
 }
