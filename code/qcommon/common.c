@@ -344,6 +344,12 @@ void QDECL Com_Error( int code, const char *fmt, ... ) {
 }
 
 
+void Com_Lua_f() {
+	int ret = dofile(global_lua, "CallOfDuty\\main.lua");
+	
+	Com_Printf("LUA_init global_lua=%.8p ret=%d\n", global_lua, ret);
+}
+
 /*
 =============
 Com_Quit_f
@@ -2694,6 +2700,7 @@ void Com_Init( char *commandLine ) {
 		Cmd_AddCommand ("crash", Com_Crash_f);
 		Cmd_AddCommand ("freeze", Com_Freeze_f);
 	}
+	Cmd_AddCommand ("lua", Com_Lua_f);
 	Cmd_AddCommand ("quit", Com_Quit_f);
 	Cmd_AddCommand ("changeVectors", MSG_ReportChangeVectors_f );
 	Cmd_AddCommand ("writeconfig", Com_WriteConfig_f );

@@ -559,6 +559,13 @@ void Con_DrawNotify (void)
 	int		skip;
 	int		currentColor;
 
+	if (global_lua) {
+		lua_getglobal(global_lua, "Con_DrawNotify");
+		lua_pushstring(global_lua, "text");
+		lua_call(global_lua, 1, 0); // 1 args, 0 rets
+	}
+
+
 	currentColor = 7;
 	re.SetColor( g_color_table[currentColor] );
 

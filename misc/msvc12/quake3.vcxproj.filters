@@ -43,6 +43,9 @@
     <Filter Include="renderergl1">
       <UniqueIdentifier>{a0272781-b682-44ec-919d-b349861756d3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="luajit">
+      <UniqueIdentifier>{aa932a08-11ee-4691-a26b-fcb2d3ca44ca}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\code\client\cl_avi.c">
@@ -684,6 +687,9 @@
     <ClCompile Include="..\..\code\renderergl1\tr_world.c">
       <Filter>renderergl1</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\code\luajit\lua_init.c">
+      <Filter>luajit</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\code\game\bg_public.h">
@@ -904,6 +910,27 @@
     </ClInclude>
     <ClInclude Include="..\..\code\renderergl1\tr_local.h">
       <Filter>renderergl1</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\code\luajit\lauxlib.h">
+      <Filter>luajit</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\code\luajit\lua.h">
+      <Filter>luajit</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\code\luajit\lua.hpp">
+      <Filter>luajit</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\code\luajit\lua_init.h">
+      <Filter>luajit</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\code\luajit\luaconf.h">
+      <Filter>luajit</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\code\luajit\luajit.h">
+      <Filter>luajit</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\code\luajit\lualib.h">
+      <Filter>luajit</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
