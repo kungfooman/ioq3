@@ -35,6 +35,7 @@ char *svc_strings[256] = {
 	"svc_snapshot",
 	"svc_EOF",
 	"svc_voip",
+	"svc_usermessage",
 };
 
 void SHOWNET( msg_t *msg, char *s) {
@@ -858,6 +859,13 @@ void CL_ParseCommandString( msg_t *msg ) {
 }
 
 
+void CL_ParseUsermessage( msg_t *msg ) {
+	int num = MSG_ReadLong(msg);
+	char *str = MSG_ReadString(msg);
+
+	Com_Printf("SVC_USERMESSAGE! num=%d str=%s\n", num, str);
+}
+
 /*
 =====================
 CL_ParseServerMessage
@@ -906,29 +914,19 @@ void CL_ParseServerMessage( msg_t *msg ) {
 		}
 	
 	// other commands
-		switch ( cmd ) {
-		default:
-			Com_Error (ERR_DROP,"CL_ParseServerMessage: Illegible server message");
-			break;			
-		case svc_nop:
-			break;
-		case svc_serverCommand:
-			CL_ParseCommandString( msg );
-			break;
-		case svc_gamestate:
-			CL_ParseGamestate( msg );
-			break;
-		case svc_snapshot:
-			CL_ParseSnapshot( msg );
-			break;
-		case svc_download:
-			CL_ParseDownload( msg );
-			break;
-		case svc_voip:
-#ifdef USE_VOIP
-			CL_ParseVoip( msg );
-#endif
-			break;
+		switch (cmd) {
+			default: Com_Error (ERR_DROP,"CL_ParseServerMessage: Illegible server message"); break;			
+			case svc_nop: break;
+			case svc_serverCommand: CL_ParseCommandString( msg ); break;
+			case svc_gamestate: CL_ParseGamestate( msg ); break;
+			case svc_snapshot: CL_ParseSnapshot( msg ); break;
+			case svc_download: CL_ParseDownload( msg ); break;
+			case svc_voip:
+				#ifdef USE_VOIP
+				CL_ParseVoip( msg );
+				#endif
+				break;
+			case svc_usermessage: CL_ParseUsermessage(msg); break;
 		}
 	}
 }

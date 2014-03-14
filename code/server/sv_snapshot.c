@@ -585,6 +585,18 @@ void SV_SendMessageToClient(msg_t *msg, client_t *client)
 	SV_Netchan_Transmit(client, msg);
 }
 
+void SV_SendUserMessagesToClient( client_t *client, msg_t *msg ) {
+	int		i;
+
+	// write any unacknowledged serverCommands
+	//for ( i = client->reliableAcknowledge + 1 ; i <= client->reliableSequence ; i++ ) {
+		MSG_WriteByte( msg, svc_usermessage );
+		MSG_WriteLong( msg, 3456 );
+		MSG_WriteString( msg, "sup!" );
+	//}
+	//client->reliableSent = client->reliableSequence;
+}
+
 
 /*
 =======================
@@ -625,12 +637,14 @@ void SV_SendClientSnapshot( client_t *client ) {
 	SV_WriteVoipToClient( client, &msg );
 #endif
 
+	SV_SendUserMessagesToClient(client, &msg);
+
 	// check for overflow
 	if ( msg.overflowed ) {
 		Com_Printf ("WARNING: msg overflowed for %s\n", client->name);
 		MSG_Clear (&msg);
 	}
-
+	
 	SV_SendMessageToClient( &msg, client );
 }
 

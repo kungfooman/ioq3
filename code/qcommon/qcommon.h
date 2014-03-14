@@ -301,6 +301,8 @@ enum svc_ops_e {
 
 // new commands, supported only by ioquake3 protocol but not legacy
 	svc_voip,     // not wrapped in USE_VOIP, so this value is reserved.
+
+	svc_usermessage, // support for custom user messages like in Garrys Mod
 };
 
 
