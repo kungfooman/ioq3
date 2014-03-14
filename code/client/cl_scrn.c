@@ -243,7 +243,7 @@ void SCR_DrawStringExt( int x, int y, float size, const char *string, float *set
 }
 
 
-__declspec(dllexport) void SCR_DrawBigString( int x, int y, const char *s, float alpha, qboolean noColorEscape ) {
+void SCR_DrawBigString( int x, int y, const char *s, float alpha, qboolean noColorEscape ) {
 	float	color[4];
 
 	color[0] = color[1] = color[2] = 1.0;
