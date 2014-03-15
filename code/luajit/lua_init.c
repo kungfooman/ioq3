@@ -112,7 +112,7 @@ void LUA_init()
 	luaL_openlibs(global_lua);  /* open libraries */
 	lua_gc(global_lua, LUA_GCRESTART, -1);
 
-	ret = dofile(global_lua, "CallOfDuty\\main.lua");
+	ret = dofile(global_lua, va("%s\\lua\\main.lua", Cvar_VariableString("fs_game")));
 	
 	Com_Printf("LUA_init global_lua=%.8p ret=%d\n", global_lua, ret);
 	
