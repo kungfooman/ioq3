@@ -93,6 +93,12 @@ int lua_Com_Printf(lua_State *L) {
 	Com_Printf("%s", text);
 	return 0;
 }
+// need to export it to read fs_game in include(), which would have circle dependency on include("lua\\codscript")
+int lua_Cvar_VariableString(lua_State *L) {
+	char *name = (char *)luaL_checkstring(L, 1);
+	lua_pushstring(L, Cvar_VariableString(name));
+	return 1;
+}
 void LUA_init()
 {
 	int ret;
@@ -104,9 +110,12 @@ void LUA_init()
 	
 	lua_pushcfunction(global_lua, lua_Cvar_Set);
 	lua_setglobal(global_lua, "Cvar_Set");
-
+	
 	lua_pushcfunction(global_lua, lua_Com_Printf);
 	lua_setglobal(global_lua, "Com_Printf");
+
+	lua_pushcfunction(global_lua, lua_Cvar_VariableString);
+	lua_setglobal(global_lua, "Cvar_VariableString");
 	
 	lua_gc(global_lua, LUA_GCSTOP, 0);  /* stop collector during initialization */
 	luaL_openlibs(global_lua);  /* open libraries */
