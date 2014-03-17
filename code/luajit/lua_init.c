@@ -42,9 +42,8 @@ int docall(lua_State *L, int narg, int clear)
 
 void l_message(const char *pname, const char *msg)
 {
-  if (pname) fprintf(stderr, "%s: ", pname);
-  fprintf(stderr, "%s\n", msg);
-  fflush(stderr);
+	if (pname) Com_Printf("%s: ", pname);
+	Com_Printf("%s\n", msg);
 }
 
 int report(lua_State *L, int status)
@@ -116,14 +115,25 @@ void LUA_init()
 
 	lua_pushcfunction(global_lua, lua_Cvar_VariableString);
 	lua_setglobal(global_lua, "Cvar_VariableString");
-	
+
+	// we have 3 lua-engines, so give the scripts some orientation
+	lua_pushinteger(global_lua, 0);
+	lua_setglobal(global_lua, "CLIENT"); // only cgame.dll
+	lua_pushinteger(global_lua, 0);
+	lua_setglobal(global_lua, "SERVER"); // only game.dll
+	lua_pushinteger(global_lua, 1);
+	lua_setglobal(global_lua, "ENGINE"); // only game.exe
+
 	lua_gc(global_lua, LUA_GCSTOP, 0);  /* stop collector during initialization */
 	luaL_openlibs(global_lua);  /* open libraries */
 	lua_gc(global_lua, LUA_GCRESTART, -1);
 
-	ret = dofile(global_lua, va("%s\\lua\\main.lua", Cvar_VariableString("fs_game")));
+	ret = dofile(global_lua, va("%s\\lua\\ENGINE\\main.lua", Cvar_VariableString("fs_game")));
 	
-	Com_Printf("LUA_init global_lua=%.8p ret=%d\n", global_lua, ret);
+	Com_Printf("[ENGINE] LUA_init global_lua=%.8p dofile=%s fs_game=%s\n", global_lua, (!ret)?"success":"fail", Cvar_VariableString("fs_game"));
 	
-	//lua_close(global_lua);
+	if (ret) { // 1 means error
+		lua_close(global_lua);
+		global_lua = NULL;
+	}
 }

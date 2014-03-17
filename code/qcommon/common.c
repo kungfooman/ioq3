@@ -345,9 +345,7 @@ void QDECL Com_Error( int code, const char *fmt, ... ) {
 
 
 void Com_Lua_f() {
-	int ret = dofile(global_lua, "CallOfDuty\\main.lua");
-	
-	Com_Printf("LUA_init global_lua=%.8p ret=%d\n", global_lua, ret);
+	LUA_init();
 }
 
 /*

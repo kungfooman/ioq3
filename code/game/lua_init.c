@@ -124,17 +124,20 @@ void LUA_init()
 	lua_pushinteger(global_lua, 0);
 	lua_setglobal(global_lua, "CLIENT"); // only cgame.dll
 	lua_pushinteger(global_lua, 1);
-	lua_setglobal(global_lua, "GAME"); // only game.dll
-	lua_pushinteger(global_lua, 1);
-	lua_setglobal(global_lua, "SERVER"); // either game.dll or game.exe
+	lua_setglobal(global_lua, "SERVER"); // only game.dll
+	lua_pushinteger(global_lua, 0);
+	lua_setglobal(global_lua, "ENGINE"); // only game.exe
 	
 	lua_gc(global_lua, LUA_GCSTOP, 0);  /* stop collector during initialization */
 	luaL_openlibs(global_lua);  /* open libraries */
 	lua_gc(global_lua, LUA_GCRESTART, -1);
 
 	trap_Cvar_VariableStringBuffer("fs_game", buf, sizeof(buf));
-	ret = dofile(global_lua, va("%s\\lua\\game\\main.lua", buf));
+	ret = dofile(global_lua, va("%s\\lua\\SERVER\\main.lua", buf));
 	Com_Printf("[GAME] LUA_init global_lua=%.8p dofile=%s fs_game=%s\n", global_lua, (!ret)?"success":"fail", buf);
 	
-	//lua_close(global_lua);
+	if (ret) { // 1 means error
+		lua_close(global_lua);
+		global_lua = NULL;
+	}
 }

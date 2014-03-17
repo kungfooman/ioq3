@@ -1899,6 +1899,18 @@ void PmoveSingle (pmove_t *pmove) {
 	}
 	pm->ps->commandTime = pmove->cmd.serverTime;
 
+	if (global_lua) {
+		int processed;
+		lua_getglobal(global_lua, "PmoveSingle");
+		lua_pushinteger(global_lua, (int)pm);
+		lua_call(global_lua, 1, 1); // 1 args, 1 rets
+		processed = (int)lua_tointeger(global_lua, -1);
+		lua_pop(global_lua, 1);
+		//Com_Printf("PmoveSingle(%s) processed=%d\n", pm, processed);
+		if (processed)
+			return;
+	}
+
 	// save old org in case we get stuck
 	VectorCopy (pm->ps->origin, pml.previous_origin);
 
