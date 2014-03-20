@@ -165,36 +165,38 @@ int lua_Cvar_VariableString(lua_State *L) {
 void LUA_init()
 {
 	int ret;
+	lua_State *L;
 
 	global_lua = lua_open();
-	
-	lua_pushcfunction(global_lua, l_sin);
-	lua_setglobal(global_lua, "mysin");
-	
-	lua_pushcfunction(global_lua, lua_Cvar_Set);
-	lua_setglobal(global_lua, "Cvar_Set");
-	
-	lua_pushcfunction(global_lua, lua_Com_Printf);
-	lua_setglobal(global_lua, "Com_Printf");
+	L = global_lua; // just to remove the references in this function (makes search list through whole source way smaller)
 
-	lua_pushcfunction(global_lua, lua_Cvar_VariableString);
-	lua_setglobal(global_lua, "Cvar_VariableString");
+	lua_pushcfunction(L, l_sin);
+	lua_setglobal(L, "mysin");
+	
+	lua_pushcfunction(L, lua_Cvar_Set);
+	lua_setglobal(L, "Cvar_Set");
+	
+	lua_pushcfunction(L, lua_Com_Printf);
+	lua_setglobal(L, "Com_Printf");
+
+	lua_pushcfunction(L, lua_Cvar_VariableString);
+	lua_setglobal(L, "Cvar_VariableString");
 
 	// we have 3 lua-engines, so give the scripts some orientation
-	lua_pushinteger(global_lua, 0);
-	lua_setglobal(global_lua, "CLIENT"); // only cgame.dll
-	lua_pushinteger(global_lua, 0);
-	lua_setglobal(global_lua, "SERVER"); // only game.dll
-	lua_pushinteger(global_lua, 1);
-	lua_setglobal(global_lua, "ENGINE"); // only game.exe
+	lua_pushinteger(L, 0);
+	lua_setglobal(L, "CLIENT"); // only cgame.dll
+	lua_pushinteger(L, 0);
+	lua_setglobal(L, "SERVER"); // only game.dll
+	lua_pushinteger(L, 1);
+	lua_setglobal(L, "ENGINE"); // only game.exe
 
-	lua_gc(global_lua, LUA_GCSTOP, 0);  /* stop collector during initialization */
-	luaL_openlibs(global_lua);  /* open libraries */
-	lua_gc(global_lua, LUA_GCRESTART, -1);
+	lua_gc(L, LUA_GCSTOP, 0);  /* stop collector during initialization */
+	luaL_openlibs(L);  /* open libraries */
+	lua_gc(L, LUA_GCRESTART, -1);
 
-	ret = dofile(global_lua, va("%s\\lua\\ENGINE\\main.lua", Cvar_VariableString("fs_game")));
+	ret = dofile(L, va("%s\\lua\\ENGINE\\main.lua", Cvar_VariableString("fs_game")));
 	
-	Com_Printf("[ENGINE] LUA_init global_lua=%.8p dofile=%s fs_game=%s\n", global_lua, (!ret)?"success":"fail", Cvar_VariableString("fs_game"));
+	Com_Printf("[ENGINE] LUA_init global_lua=%.8p dofile=%s fs_game=%s\n", L, (!ret)?"success":"fail", Cvar_VariableString("fs_game"));
 	
 	if (ret) { // 1 means error
 		lua_close(global_lua);
