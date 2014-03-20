@@ -9,6 +9,8 @@
 
 extern lua_State *global_lua;
 
+int LUA_callfunction(lua_State *L, char *functionname, char *params, ...);
+
 int traceback(lua_State *L);
 int docall(lua_State *L, int narg, int clear);
 void l_message(const char *pname, const char *msg);

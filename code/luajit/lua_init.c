@@ -6,7 +6,41 @@ lua_State *global_lua = NULL;
 
 #include "../../code/client/client.h"
 
+int LUA_callfunction(lua_State *L, char *functionname, char *params, ...)
+{
+	va_list args;
+	int len, i, errors=0;
 
+	if ( ! L)
+		return 0;
+
+	lua_getglobal(global_lua, functionname);
+
+	if (lua_isnil(L, -1)) {
+		Com_Printf("[LUA][ENGINE][WARNING] function \"%s\" not found! params=\"%s\"\n", functionname, params);
+		return 0;
+	}
+
+	len = strlen(params);
+	va_start(args, params);
+	for (i=0; i<len; i++) {
+		switch (params[i]) {
+			case 'i': {
+				int tmp_int = va_arg(args, int);
+				lua_pushinteger(L, tmp_int);
+				break;
+			}
+			default:
+				errors++;
+				Com_Printf("[WARNING] LUA_callfunction errors=%d params[%d]=%c not implemented!\n", errors, i, params[i]);
+		}
+	}
+	va_end(args);
+
+	lua_call(global_lua, len, 0); // args, 0 rets
+
+	return errors == 0; // success if no errors
+}
 
 int traceback(lua_State *L)
 {
