@@ -1899,13 +1899,9 @@ void PmoveSingle (pmove_t *pmove) {
 	}
 	pm->ps->commandTime = pmove->cmd.serverTime;
 
-	if (global_lua) {
-		int processed;
-		lua_getglobal(global_lua, "PmoveSingle");
-		lua_pushinteger(global_lua, (int)pm);
-		lua_call(global_lua, 1, 1); // 1 args, 1 rets
-		processed = (int)lua_tointeger(global_lua, -1);
-		lua_pop(global_lua, 1);
+	{
+		int processed = 0; // make sure to init, because LUA_callfunction won't if lua-handle is NULL
+		LUA_callfunction(global_lua, "PmoveSingle", "i,i", (int)pm, &processed);
 		//Com_Printf("PmoveSingle(%s) processed=%d\n", pm, processed);
 		if (processed)
 			return;

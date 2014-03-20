@@ -596,13 +596,7 @@ void SV_SendUserMessagesToClient( client_t *client, msg_t *msg ) {
 	//}
 	//client->reliableSent = client->reliableSequence;
 
-
-	if (global_lua) {
-		lua_getglobal(global_lua, "SV_SendUserMessagesToClient");
-		lua_pushinteger(global_lua, (int)client);
-		lua_pushinteger(global_lua, (int)msg);
-		lua_call(global_lua, 2, 0); // 2 args, 0 rets
-	}
+	LUA_callfunction(global_lua, "SV_SendUserMessagesToClient", "ii", (int)client, (int)msg);
 }
 
 

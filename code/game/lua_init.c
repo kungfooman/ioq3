@@ -11,7 +11,8 @@ int LUA_callfunction(lua_State *L, char *functionname, char *params, ...)
 {
 	va_list args;
 	int len, i, errors=0;
-
+	int ret_start, rets_amount=0;
+	int args_amount = 0;
 	if ( ! L)
 		return 0;
 
@@ -25,20 +26,49 @@ int LUA_callfunction(lua_State *L, char *functionname, char *params, ...)
 	len = strlen(params);
 	va_start(args, params);
 	for (i=0; i<len; i++) {
+		// leave loop to handle the to-be-returned values
+		if (params[i] == ',') {
+			rets_amount = len - i - 1;
+			break;
+		}
+
 		switch (params[i]) {
 			case 'i': {
 				int tmp_int = va_arg(args, int);
 				lua_pushinteger(L, tmp_int);
+				args_amount++;
+				break;
+			}
+			case 's': {
+				char *tmp_str = va_arg(args, char *);
+				lua_pushstring(L, tmp_str);
+				args_amount++;
 				break;
 			}
 			default:
 				errors++;
-				Com_Printf("[WARNING] LUA_callfunction errors=%d params[%d]=%c not implemented!\n", errors, i, params[i]);
+				Com_Printf("[WARNING] [PUSH] LUA_callfunction errors=%d params[%d]=%c not implemented!\n", errors, i, params[i]);
+		}
+	}
+	
+	lua_call(global_lua, args_amount, rets_amount);
+
+	i++; // jump ,
+	for (; i<len; i++) {
+		switch (params[i]) {
+			case 'i': {
+				int *tmp_int = va_arg(args, int *);
+				*tmp_int = lua_tointeger(L, len - i); // todo: test with 2 return args (only one return value is just -1)
+				break;
+			}
+			default:
+				errors++;
+				Com_Printf("[WARNING] [POP] LUA_callfunction errors=%d params[%d]=%c not implemented!\n", errors, i, params[i]);
 		}
 	}
 	va_end(args);
+	lua_pop(global_lua, rets_amount);
 
-	lua_call(global_lua, len, 0); // args, 0 rets
 
 	return errors == 0; // success if no errors
 }

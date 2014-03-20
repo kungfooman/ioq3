@@ -860,39 +860,19 @@ void CL_ParseCommandString( msg_t *msg ) {
 
 
 void CL_ParseUsermessage_1( msg_t *msg ) {
-	if (global_lua) {
-		lua_getglobal(global_lua, "CL_ParseUsermessage_1");
-		lua_pushinteger(global_lua, (int)msg);
-		lua_call(global_lua, 1, 0); // 1 args, 0 rets
-	}
+	LUA_callfunction(global_lua, "CL_ParseUsermessage_1", "i", (int)msg);
 }
 void CL_ParseUsermessage_2( msg_t *msg ) {
-	if (global_lua) {
-		lua_getglobal(global_lua, "CL_ParseUsermessage_2");
-		lua_pushinteger(global_lua, (int)msg);
-		lua_call(global_lua, 1, 0); // 1 args, 0 rets
-	}
+	LUA_callfunction(global_lua, "CL_ParseUsermessage_2", "i", (int)msg);
 }
 void CL_ParseUsermessage_3( msg_t *msg ) {
-	if (global_lua) {
-		lua_getglobal(global_lua, "CL_ParseUsermessage_3");
-		lua_pushinteger(global_lua, (int)msg);
-		lua_call(global_lua, 1, 0); // 1 args, 0 rets
-	}
+	LUA_callfunction(global_lua, "CL_ParseUsermessage_3", "i", (int)msg);
 }
 void CL_ParseUsermessage_4( msg_t *msg ) {
-	if (global_lua) {
-		lua_getglobal(global_lua, "CL_ParseUsermessage_4");
-		lua_pushinteger(global_lua, (int)msg);
-		lua_call(global_lua, 1, 0); // 1 args, 0 rets
-	}
+	LUA_callfunction(global_lua, "CL_ParseUsermessage_4", "i", (int)msg);
 }
 void CL_ParseUsermessage_5( msg_t *msg ) {
-	if (global_lua) {
-		lua_getglobal(global_lua, "CL_ParseUsermessage_5");
-		lua_pushinteger(global_lua, (int)msg);
-		lua_call(global_lua, 1, 0); // 1 args, 0 rets
-	}
+	LUA_callfunction(global_lua, "CL_ParseUsermessage_5", "i", (int)msg);
 }
 
 /*

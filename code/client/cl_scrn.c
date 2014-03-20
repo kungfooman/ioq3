@@ -533,11 +533,7 @@ void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 			break;
 		}
 
-		if (global_lua) {
-			lua_getglobal(global_lua, "SCR_DrawScreenField");
-			lua_pushinteger(global_lua, (int)clc.state);
-			lua_call(global_lua, 1, 0); // 1 args, 0 rets
-		}
+		LUA_callfunction(global_lua, "SCR_DrawScreenField", "i", (int)clc.state);
 
 	}
 
