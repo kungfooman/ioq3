@@ -12,6 +12,9 @@
     <Filter Include="Resource Files">
       <UniqueIdentifier>{3d2e36fc-1a0f-433d-bc76-20e2520707af}</UniqueIdentifier>
     </Filter>
+    <Filter Include="luajit">
+      <UniqueIdentifier>{f5be18e4-fd52-4a0d-a8ad-87a655ef6300}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\code\game\bg_lib.c">
@@ -98,6 +101,9 @@
     <ClCompile Include="..\..\code\ui\ui_shared.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\code\cgame\lua_init.c">
+      <Filter>luajit</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\code\game\bg_public.h">
@@ -114,6 +120,9 @@
     </ClInclude>
     <ClInclude Include="..\..\code\qcommon\surfaceflags.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\code\cgame\lua_init.h">
+      <Filter>luajit</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

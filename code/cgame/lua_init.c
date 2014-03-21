@@ -3,8 +3,9 @@
 #include <math.h>
 lua_State *global_lua = NULL;
 
-
-#include "../../code/client/client.h"
+#include "cg_local.h" // needed for trap_Cvar in cgame.dll
+//#include "g_local.h" // needed for trap_Cvar in game.dll
+//#include "../../code/client/client.h" // for game.exe
 
 int LUA_callfunction(lua_State *L, char *functionname, char *params, ...)
 {
@@ -18,7 +19,7 @@ int LUA_callfunction(lua_State *L, char *functionname, char *params, ...)
 	lua_getglobal(global_lua, functionname);
 
 	if (lua_isnil(L, -1)) {
-		Com_Printf("[LUA][ENGINE][WARNING] function \"%s\" not found! params=\"%s\"\n", functionname, params);
+		Com_Printf("[LUA][CLIENT][WARNING] function \"%s\" not found! params=\"%s\"\n", functionname, params);
 		return 0;
 	}
 
@@ -133,88 +134,11 @@ int dostring(lua_State *L, const char *s, const char *name)
   return report(L, status);
 }
 
-// http://www.lua.org/source/5.0/src_lib_lauxlib.c.html#errfile
-void callalert (lua_State *L) {
-	lua_getglobal(L, "_ALERT");
-	if (lua_isfunction(L, -1)) {
-		lua_insert(L, -2);
-		lua_call(L, 1, 0);
-	} else {  /* no _ALERT function; print it directly */
-		Com_Printf("%s\n", lua_tostring(L, -2));
-		lua_pop(L, 2);  /* remove error message and _ALERT */
-	}
-}
-int errfile (lua_State *L, int fnameindex) {
-  const char *filename = lua_tostring(L, fnameindex) + 1;
-  lua_pushfstring(L, "cannot read %s: %s", filename, strerror(errno));
-  lua_remove(L, fnameindex);
-  return LUA_ERRFILE;
-}
-int loadfile_fs(lua_State *L, const char *name)
-{
-	char *code;
-	int status;
-	fileHandle_t file;
-	luaL_Buffer lua_buffer;
-	int fnameindex = lua_gettop(L) + 1;  /* index of filename on the stack */
-
-	FS_FOpenFileRead(name, &file, qtrue); // uniqueFILE = not in pak? but what if i put it in...
-	if ( ! file) {
-		//errfile(L, fnameindex); // unable to open file
-		//callalert(L);
-		lua_pushfstring(L, "Cannot open file: %s", name);
-		/*
-		lua_getglobal(L, "_ALERT");
-		if (lua_isfunction(L, -1)) {
-
-			lua_insert(L, -2);
-
-			Com_Printf("Before!!!!\n");
-			lua_call(L, 1, 0);
-			Com_Printf("After!!!!\n");
-		}
-		*/
-		lua_error(L); // i still wonder how to call our own trace function like in pcall
-		//lua_pushnil(L);
-		return 0;
-	}
-	
-	luaL_buffinit(L, &lua_buffer);
-	
-	while (1) {
-		char *lua_memory = luaL_prepbuffer(&lua_buffer);
-		int len = FS_Read(lua_memory, LUAL_BUFFERSIZE, file);
-		//Com_Printf("Len: %d\n", len);
-		if (len <= 0) {
-			FS_FCloseFile(file);
-			break;
-		}
-		luaL_addsize(&lua_buffer, len);
-	}
-	luaL_pushresult(&lua_buffer); // close buffer and push as string
-	code = lua_tostring(L, -1);
-	lua_pop(L, 1); // clean up our string
-
-	{
-		int status = luaL_loadbuffer(L, code, strlen(code), name);
-		report(L, status);
-		return 1; // return the function object
-		//return dostring(L, code, name);
-	}
-}
-
 int dolibrary(lua_State *L, const char *name)
 {
   lua_getglobal(L, "require");
   lua_pushstring(L, name);
   return report(L, docall(L, 1, 1));
-}
-int doloadfile_fs(lua_State *L, const char *name)
-{
-  lua_getglobal(L, "myloadfile");
-  lua_pushstring(L, name);
-  report(L, docall(L, 1, 0)); // 1=arg(the string) and 0=dont clean result up(the function)
-  return report(L, docall(L, 0, 1));
 }
 
 int l_sin (lua_State *L) {
@@ -233,24 +157,23 @@ int lua_Com_Printf(lua_State *L) {
 	Com_Printf("%s", text);
 	return 0;
 }
-// need to export it to read fs_game in include(), which would have circle dependency on include("lua\\codscript")
-int lua_Cvar_VariableString(lua_State *L) {
+// need to export it to read fs_game in include()
+int lua_trap_Cvar_VariableStringBuffer(lua_State *L) {
 	char *name = (char *)luaL_checkstring(L, 1);
-	lua_pushstring(L, Cvar_VariableString(name));
+	char buf[1024];
+	trap_Cvar_VariableStringBuffer(name, buf, sizeof(buf));
+	lua_pushstring(L, buf);
 	return 1;
-}
-int lua_myloadfile(lua_State *L) {
-	char *name = (char *)luaL_checkstring(L, 1);
-	//Com_Printf("Open file: %s\n", name);
-	return loadfile_fs(L, name);;
 }
 void LUA_init()
 {
 	int ret;
+	char buf[1024];
 	lua_State *L;
 
 	global_lua = lua_open();
 	L = global_lua; // just to remove the references in this function (makes search list through whole source way smaller)
+
 
 	lua_pushcfunction(L, l_sin);
 	lua_setglobal(L, "mysin");
@@ -261,49 +184,39 @@ void LUA_init()
 	lua_pushcfunction(L, lua_Com_Printf);
 	lua_setglobal(L, "Com_Printf");
 
-	lua_pushcfunction(L, lua_Cvar_VariableString);
-	lua_setglobal(L, "Cvar_VariableString"); // only game.exe
-
-	lua_pushcfunction(L, lua_myloadfile);
-	lua_setglobal(L, "myloadfile");
-
+	lua_pushcfunction(L, lua_trap_Cvar_VariableStringBuffer);
+	lua_setglobal(L, "trap_Cvar_VariableStringBuffer");
+	
 	// we have 3 lua-engines, so give the scripts some orientation
-	lua_pushinteger(L, 0);
+	lua_pushinteger(L, 1);
 	lua_setglobal(L, "CLIENT"); // only cgame.dll
 	lua_pushinteger(L, 0);
 	lua_setglobal(L, "SERVER"); // only game.dll
-	lua_pushinteger(L, 1);
+	lua_pushinteger(L, 0);
 	lua_setglobal(L, "ENGINE"); // only game.exe
-
+	
 	lua_gc(L, LUA_GCSTOP, 0);  /* stop collector during initialization */
 	luaL_openlibs(L);  /* open libraries */
-
-	/*
-	lua_pushcfunction(L, luaopen_table);
-	lua_pushliteral(L, LUA_TABLIBNAME);
-	lua_call(L, 1, 0);
-
-	luaopen_base(L);
-	luaopen_math(L);
-	luaopen_string(L);
-	luaopen_table(L);
-	luaopen_io(L);
-	luaopen_os(L);
-	luaopen_package(L);
-	luaopen_debug(L);
-	luaopen_bit(L);
-	luaopen_jit(L);
-	luaopen_ffi(L);
-	*/
 	lua_gc(L, LUA_GCRESTART, -1);
 
-	ret = doloadfile_fs(L, "lua\\ENGINE\\main.lua");
-	//ret = dofile(L, "baseq3\\lua\\ENGINE\\main.lua");
-
-	Com_Printf("[ENGINE] LUA_init global_lua=%.8p dofile=%s fs_game=%s\n", L, (!ret)?"success":"fail", Cvar_VariableString("fs_game"));
+	trap_Cvar_VariableStringBuffer("fs_game", buf, sizeof(buf));
+	ret = dofile(L, va("%s\\lua\\CLIENT\\main.lua", buf));
+	Com_Printf("[GAME] LUA_init global_lua=%.8p dofile=%s fs_game=%s\n", L, (!ret)?"success":"fail", buf);
 	
+	LUA_callfunction(global_lua, "init", "");
+
 	if (ret) { // 1 means error
 		lua_close(global_lua);
 		global_lua = NULL;
 	}
+}
+
+void LUA_shutdown() {
+	if ( ! global_lua)
+		return;
+
+	LUA_callfunction(global_lua, "shutdown", "");
+
+	lua_close(global_lua);
+	global_lua = NULL;
 }
