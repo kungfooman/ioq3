@@ -101,7 +101,7 @@
     <ClCompile Include="..\..\code\ui\ui_shared.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\code\cgame\lua_init.c">
+    <ClCompile Include="..\..\code\luajit\lua_init.c">
       <Filter>luajit</Filter>
     </ClCompile>
   </ItemGroup>
@@ -121,7 +121,7 @@
     <ClInclude Include="..\..\code\qcommon\surfaceflags.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\code\cgame\lua_init.h">
+    <ClInclude Include="..\..\code\luajit\lua_init.h">
       <Filter>luajit</Filter>
     </ClInclude>
   </ItemGroup>

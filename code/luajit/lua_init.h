@@ -7,6 +7,27 @@
 #include "lualib.h"
 #include "luajit.h"
 
+// either it's defined by Visual Studio Project to 1 or define to 0 here
+#ifndef LUA_CLIENT
+	#define LUA_CLIENT 0
+#endif
+#ifndef LUA_SERVER
+	#define LUA_SERVER 0
+#endif
+#ifndef LUA_ENGINE
+	#define LUA_ENGINE 0
+#endif
+
+#if LUA_CLIENT
+	#define LUA_BINARY "CLIENT"
+#endif
+#if LUA_SERVER
+	#define LUA_BINARY "SERVER"
+#endif
+#if LUA_ENGINE
+	#define LUA_BINARY "ENGINE"
+#endif
+
 extern lua_State *global_lua;
 
 int LUA_callfunction(lua_State *L, char *functionname, char *params, ...);

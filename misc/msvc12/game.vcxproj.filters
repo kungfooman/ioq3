@@ -116,7 +116,7 @@
     <ClCompile Include="..\..\code\qcommon\q_shared.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\code\game\lua_init.c">
+    <ClCompile Include="..\..\code\luajit\lua_init.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -202,7 +202,7 @@
     <ClInclude Include="..\..\code\game\syn.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\code\game\lua_init.h">
+    <ClInclude Include="..\..\code\luajit\lua_init.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

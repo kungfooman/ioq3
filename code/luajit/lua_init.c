@@ -3,8 +3,13 @@
 #include <math.h>
 lua_State *global_lua = NULL;
 
-
-#include "../../code/client/client.h"
+#if LUA_CLIENT
+	#include "../../code/cgame/cg_local.h" // needed for trap_* in cgame.dll
+#elif LUA_SERVER
+	#include "../../code/game/g_local.h" // needed for trap_* in game.dll
+#elif LUA_ENGINE
+	#include "../../code/client/client.h" // for game.exe
+#endif
 
 int LUA_callfunction(lua_State *L, char *functionname, char *params, ...)
 {
@@ -150,6 +155,8 @@ int errfile (lua_State *L, int fnameindex) {
   lua_remove(L, fnameindex);
   return LUA_ERRFILE;
 }
+
+#if LUA_ENGINE
 int loadfile_fs(lua_State *L, const char *name)
 {
 	char *code;
@@ -202,6 +209,49 @@ int loadfile_fs(lua_State *L, const char *name)
 		//return dostring(L, code, name);
 	}
 }
+#else
+int loadfile_fs(lua_State *L, const char *name)
+{
+	char *code;
+	int status;
+	fileHandle_t file;
+	luaL_Buffer lua_buffer;
+	int fnameindex = lua_gettop(L) + 1;  /* index of filename on the stack */
+	int len;
+
+	len = trap_FS_FOpenFile(name, &file, FS_READ);
+	if ( ! file) {
+		lua_pushfstring(L, "Cannot open file: %s", name);
+		lua_error(L);
+		return 0;
+	}
+	
+	luaL_buffinit(L, &lua_buffer);
+
+	while (1) {
+		char *lua_memory = luaL_prepbuffer(&lua_buffer);
+		trap_FS_Read(lua_memory, LUAL_BUFFERSIZE, file); // LUAL_BUFFERSIZE is 512
+		if (len < LUAL_BUFFERSIZE) {
+			char *lua_memory;
+			luaL_addsize(&lua_buffer, len);	
+			lua_memory = luaL_prepbuffer(&lua_buffer);
+			trap_FS_Read(lua_memory, len, file);
+			break;
+		}
+		len -= LUAL_BUFFERSIZE;
+		luaL_addsize(&lua_buffer, LUAL_BUFFERSIZE);
+	}
+	trap_FS_FCloseFile(file);
+
+	luaL_pushresult(&lua_buffer); // close buffer and push as string
+	code = lua_tostring(L, -1);
+	lua_pop(L, 1); // clean up our string
+
+	report(L, luaL_loadbuffer(L, code, strlen(code), name));
+	return 1; // return the function object
+}
+
+#endif
 
 int dolibrary(lua_State *L, const char *name)
 {
@@ -209,7 +259,7 @@ int dolibrary(lua_State *L, const char *name)
   lua_pushstring(L, name);
   return report(L, docall(L, 1, 1));
 }
-int doloadfile_fs(lua_State *L, const char *name)
+int dofile_fs(lua_State *L, const char *name)
 {
   lua_getglobal(L, "myloadfile");
   lua_pushstring(L, name);
@@ -233,12 +283,25 @@ int lua_Com_Printf(lua_State *L) {
 	Com_Printf("%s", text);
 	return 0;
 }
+
+#if LUA_ENGINE
 // need to export it to read fs_game in include(), which would have circle dependency on include("lua\\codscript")
-int lua_Cvar_VariableString(lua_State *L) {
+int lua_getcvar(lua_State *L) {
 	char *name = (char *)luaL_checkstring(L, 1);
 	lua_pushstring(L, Cvar_VariableString(name));
 	return 1;
 }
+#else
+// need to export it to read fs_game in include()
+int lua_getcvar(lua_State *L) {
+	char *name = (char *)luaL_checkstring(L, 1);
+	char buf[1024];
+	trap_Cvar_VariableStringBuffer(name, buf, sizeof(buf));
+	lua_pushstring(L, buf);
+	return 1;
+}
+#endif
+
 int lua_myloadfile(lua_State *L) {
 	char *name = (char *)luaL_checkstring(L, 1);
 	//Com_Printf("Open file: %s\n", name);
@@ -261,19 +324,23 @@ void LUA_init()
 	lua_pushcfunction(L, lua_Com_Printf);
 	lua_setglobal(L, "Com_Printf");
 
-	lua_pushcfunction(L, lua_Cvar_VariableString);
-	lua_setglobal(L, "Cvar_VariableString"); // only game.exe
+	lua_pushcfunction(L, lua_getcvar);
+	lua_setglobal(L, "getcvar");
 
 	lua_pushcfunction(L, lua_myloadfile);
 	lua_setglobal(L, "myloadfile");
-
+	
 	// we have 3 lua-engines, so give the scripts some orientation
-	lua_pushinteger(L, 0);
+	lua_pushboolean(L, LUA_CLIENT);
 	lua_setglobal(L, "CLIENT"); // only cgame.dll
-	lua_pushinteger(L, 0);
+	lua_pushboolean(L, LUA_SERVER);
 	lua_setglobal(L, "SERVER"); // only game.dll
-	lua_pushinteger(L, 1);
+	lua_pushboolean(L, LUA_ENGINE);
 	lua_setglobal(L, "ENGINE"); // only game.exe
+
+
+	lua_pushstring(L, LUA_BINARY); // a quick string for tutorials e.g.
+	lua_setglobal(L, "BINARY");
 
 	lua_gc(L, LUA_GCSTOP, 0);  /* stop collector during initialization */
 	luaL_openlibs(L);  /* open libraries */
@@ -297,13 +364,29 @@ void LUA_init()
 	*/
 	lua_gc(L, LUA_GCRESTART, -1);
 
-	ret = doloadfile_fs(L, "lua\\ENGINE\\main.lua");
-	//ret = dofile(L, "baseq3\\lua\\ENGINE\\main.lua");
+	ret = dofile_fs(L, "lua\\main.lua");
 
-	Com_Printf("[ENGINE] LUA_init global_lua=%.8p dofile=%s fs_game=%s\n", L, (!ret)?"success":"fail", Cvar_VariableString("fs_game"));
 	
+
+
+	Com_Printf("[" LUA_BINARY "] LUA_init global_lua=%.8p dofile=%s\n", L, (!ret)?"success":"fail");
+	
+
+
+	LUA_callfunction(global_lua, "init", "");
+
 	if (ret) { // 1 means error
 		lua_close(global_lua);
 		global_lua = NULL;
 	}
+}
+
+void LUA_shutdown() {
+	if ( ! global_lua)
+		return;
+
+	LUA_callfunction(global_lua, "shutdown", "");
+
+	lua_close(global_lua);
+	global_lua = NULL;
 }
